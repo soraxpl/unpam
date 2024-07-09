@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- HTML Meta Tags -->
+    <meta name="description" content="Ini adalah website untuk aplikasi android unpam dan memudahkan user atau mahasiswa unpam">
+    <meta name="language" content="id">
+    <meta name="author" content="Xnuvers007 | Indra D A">
+    <meta name="keywords" content="unpam,pamulang,android,aplikasi,universitaspamulang,universitas,indonesia,ciputat,teknikinformatika,viktor">
+    <meta name="robots" content="index, follow">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8">
+
+    <!-- Google / Search Engine Tags -->
+    <meta itemprop="name" content="Android Unpam">
+    <meta itemprop="description" content="Ini adalah website untuk aplikasi android unpam dan memudahkan user atau mahasiswa unpam">
+    <meta itemprop="image" content="https://assets.nsd.co.id/images/kampus/logo/Logo_Universitas_Pamulang.png">
+
+    <!-- Facebook Meta Tags -->
+    <meta property="og:url" content="https://bioskop-six.vercel.app/unpam">
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Android Unpam" />
+    <meta property="og:description" content="Ini adalah website untuk aplikasi android unpam dan memudahkan user atau mahasiswa unpam" />
+    <meta property="og:image" content="https://assets.nsd.co.id/images/kampus/logo/Logo_Universitas_Pamulang.png" />
+    <meta property="og:site_name" content="Android Unpam" />
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Android Unpam" />
+    <meta name="twitter:description" content="Ini adalah website untuk aplikasi android unpam dan memudahkan user atau mahasiswa unpam" />
+    <meta name="twitter:image" content="https://assets.nsd.co.id/images/kampus/logo/Logo_Universitas_Pamulang.png" />
+
+    <!-- Meta Tags Generated via https://github.com/Xnuvers007/Meta-Generator -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Android Unpam</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            color: #212529;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .status {
+            margin-left: 10px;
+            font-weight: bold;
+            font-size: 14px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="text-center mb-5">
+            <h1>Android Unpam</h1>
+            <p>Check the status of Unpam servers or any other URL</p>
+        </div>
+        
+        <div class="list-group mb-4">
+            {% for url in urls %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <a href="{{ url.url }}" target="_blank">{{ url.name }}</a>
+                <div>
+                    <button class="btn btn-primary btn-sm check-status" data-url="{{ url.url }}">Check Status</button>
+                    <button class="btn btn-secondary btn-sm go-to-url" data-url="{{ url.url }}">Go to URL</button>
+                </div>
+                <span class="status"></span>
+            </div>
+            {% endfor %}
+        </div>
+    
+        <div class="mb-4">
+            <h5>Check Custom URL</h5>
+            <div class="input-group">
+                <input type="text" id="customUrl" class="form-control" placeholder="Enter URL">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" id="checkCustomStatus">Check Status</button>
+                    <button class="btn btn-secondary" id="goToCustomUrl">Go to URL</button>
+                </div>
+            </div>
+            <span class="status mt-2"></span>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.check-status').click(function() {
+                let $button = $(this);
+                let url = $button.data('url');
+                let $status = $button.closest('.list-group-item').find('.status');
+    
+                $status.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...');
+    
+                $.ajax({
+                    url: '/check_status',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ url: url }),
+                    success: function(response) {
+                        let status = response.status;
+                        if (status === "200 OK") {
+                            $status.html('<span class="text-success">' + status + '</span>');
+                        } else if (status.includes("Client Error")) {
+                            $status.html('<span class="text-warning">' + status + '</span>');
+                        } else if (status.includes("Server Error")) {
+                            $status.html('<span class="text-danger">' + status + '</span>');
+                        } else {
+                            $status.html('<span class="text-danger">' + status + '</span>');
+                        }
+                    },
+                    error: function() {
+                        $status.html('<span class="text-danger">Error</span>');
+                    }
+                });
+            });
+
+            $('.go-to-url').click(function() {
+                let url = $(this).data('url');
+                window.open(url, '_blank');
+            });
+    
+            $('#checkCustomStatus').click(function() {
+                let url = $('#customUrl').val();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'http://' + url;
+                }
+                let $status = $(this).closest('.input-group').next('.status');
+    
+                $status.html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Checking...');
+    
+                $.ajax({
+                    url: '/check_status',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ url: url }),
+                    success: function(response) {
+                        let status = response.status;
+                        if (status === "200 OK") {
+                            $status.html('<span class="text-success">' + status + '</span>');
+                        } else if (status.includes("Client Error")) {
+                            $status.html('<span class="text-warning">' + status + '</span>');
+                        } else if (status.includes("Server Error")) {
+                            $status.html('<span class="text-danger">' + status + '</span>');
+                        } else {
+                            $status.html('<span class="text-danger">' + status + '</span>');
+                        }
+                    },
+                    error: function() {
+                        $status.html('<span class="text-danger">Error</span>');
+                    }
+                });
+            });
+
+            $('#goToCustomUrl').click(function() {
+                let url = $('#customUrl').val();
+                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                    url = 'http://' + url;
+                }
+                window.open(url, '_blank');
+            });
+        });
+    </script>
+    
+</body>
+</html>
